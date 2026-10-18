@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Scanner Barcode SEHATI</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 520px;
+      margin: 20px auto;
+      padding: 16px;
+      color: #173b38;
+      background: #f4f8f7;
+    }
+    h2 { text-align: center; }
+    button {
+      padding: 12px 16px;
+      margin: 6px 3px;
+      border: 0;
+      border-radius: 8px;
+      background: #087c70;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #reader { width: 100%; margin-top: 14px; }
+    #status { margin-top: 14px; overflow-wrap: anywhere; }
+    #result { font-weight: bold; font-size: 20px; }
+  </style>
+</head>
+<body>
+  <h2>Scanner Barcode SEHATI</h2>
+  <p>Arahkan kamera belakang HP ke barcode barang.</p>
+
+  <button id="startBtn" type="button">📷 Mulai Scan</button>
+  <button id="stopBtn" type="button">Tutup Kamera</button>
+
+  <div id="reader"></div>
+  <p id="status">Siap memindai barcode.</p>
+  <p id="result"></p>
+  <button id="copyBtn" type="button" hidden>Salin Kode Barcode</button>
+
+  <script>
+    let scanner = null;
+    let sedangScan = false;
+    let kodeTerbaca = "";
+
+    const statusEl = document.getElementById("status");
+    const resultEl = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const copyBtn = document.getElementById("copyBtn");
+
+    startBtn.addEventListener("click", async () => {
+      if (sedangScan) return;
+
+      if (!window.Html5Qrcode) {
+        statusEl.textContent =
+          "Library scanner belum termuat. Periksa koneksi internet.";
+        return;
+      }
+
+      try {
+        scanner = new Html5Qrcode("reader");
+        statusEl.textContent = "Meminta izin kamera...";
+
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 260, height: 140 } },
+          async (kode) => {
+            if (!sedangScan) return;
+            sedangScan = false;
+            kodeTerbaca = kode;
+            resultEl.textContent = "Barcode: " + kode;
+            copyBtn.hidden = false;
+            statusEl.textContent = "Barcode berhasil dibaca.";
+
+            try { await scanner.stop(); } catch (e) {}
+          },
+          () => {}
+        );
+
+        sedangScan = true;
+        statusEl.textContent = "Kamera aktif. Arahkan ke barcode.";
+      } catch (err) {
+        sedangScan = false;
+        statusEl.textContent =
+          "Kamera gagal dibuka: " + (err.message || String(err));
+      }
+    });
+
+    stopBtn.addEventListener("click", async () => {
+      sedangScan = false;
+      if (scanner) {
+        try {
+          if (scanner.isScanning) await scanner.stop();
+          scanner.clear();
+        } catch (e) {}
+        scanner = null;
+      }
+      statusEl.textContent = "Kamera ditutup.";
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(kodeTerbaca);
+        statusEl.textContent = "Kode berhasil disalin. Anda bisa kembali ke nota.";
+      } catch (e) {
+        statusEl.textContent = "Kode barcode: " + kodeTerbaca;
+      }
+    });
+  </script>
+</body>
+</html>
