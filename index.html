@@ -89,6 +89,15 @@
             resultEl.textContent = "Barcode: " + kode;
             copyBtn.hidden = false;
             statusEl.textContent = "Barcode berhasil dibaca.";
+            
+if (window.opener && !window.opener.closed) {
+  window.opener.postMessage(
+    { type: 'SEHATI_BARCODE', barcode: kodeTerbaca },
+    '*'
+  );
+  window.close();
+}
+
 
             try { await scanner.stop(); } catch (e) {}
           },
