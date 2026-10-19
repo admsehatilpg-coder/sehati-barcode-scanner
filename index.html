@@ -95,7 +95,6 @@ if (window.opener && !window.opener.closed) {
     { type: 'SEHATI_BARCODE', barcode: kodeTerbaca },
     '*'
   );
-  window.close();
 }
 
 
@@ -112,7 +111,58 @@ if (window.opener && !window.opener.closed) {
           "Kamera gagal dibuka: " + (err.message || String(err));
       }
     });
+window.addEventListener("message", async (event) => {
+  if (event.origin !== "https://script.google.com") return;
+  if (!event.data || event.data.type !== "SEHATI_SCAN_LAGI") return;
+  if (!scanner || scanner.isScanning) return;
 
+  try {
+    sedangScan = true;
+    statusEl.textContent = "Kamera aktif. Arahkan ke barcode berikutnya.";
+
+    await scanner.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: { width: 300, height: 160 },
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF
+        ]
+      },
+      async (kode) => {
+        if (!sedangScan) return;
+
+        sedangScan = false;
+        kodeTerbaca = kode;
+        resultEl.textContent = "Barcode: " + kode;
+        copyBtn.hidden = false;
+        statusEl.textContent = "Barcode berhasil dibaca.";
+
+        if (window.opener && !window.opener.closed) {
+          window.opener.postMessage(
+            { type: "SEHATI_BARCODE", barcode: kodeTerbaca },
+            "*"
+          );
+        }
+
+        try {
+          await scanner.stop();
+        } catch (e) {}
+      },
+      () => {}
+    );
+  } catch (err) {
+    sedangScan = false;
+    statusEl.textContent =
+      "Kamera gagal dibuka: " + (err.message || String(err));
+  }
+});
     stopBtn.addEventListener("click", async () => {
       sedangScan = false;
       if (scanner) {
