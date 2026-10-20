@@ -75,7 +75,7 @@
         // Aplikasi nota memvalidasi origin dan sumber pesan sebelum menerima barcode.
         window.opener.postMessage(
           { type: 'SEHATI_BARCODE', barcode: String(kode) },
-          'https://script.google.com'
+          '*'
         );
         statusEl.textContent = 'Barcode terkirim otomatis ke nota. Kembali ke tab nota dan masukkan jumlah PCS.';
       } catch (e) {
