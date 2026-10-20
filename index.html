@@ -77,7 +77,7 @@
           { type: 'SEHATI_BARCODE', barcode: String(kode) },
           '*'
         );
-        statusEl.textContent = 'Barcode terkirim otomatis ke nota. Kembali ke tab nota dan masukkan jumlah PCS.';
+        statusEl.textContent = 'Barcode terbaca dan dikirim. Menunggu konfirmasi dari nota…';
       } catch (e) {
         statusEl.textContent = 'Barcode terbaca: ' + kode + '. Pengiriman otomatis gagal; kembali ke nota.';
       }
@@ -143,6 +143,14 @@ kirimBarcodeKeNota(kodeTerbaca);
           "Kamera gagal dibuka: " + (err.message || String(err));
       }
     });
+window.addEventListener("message", (event) => {
+  if (event.source !== window.opener) return;
+  if (!event.data || event.data.type !== "SEHATI_BARCODE_ACK") return;
+  statusEl.textContent = event.data.found
+    ? "Barcode berhasil masuk ke nota. Masukkan jumlah PCS di tab nota."
+    : "Barcode diterima nota, tetapi tidak ada di master barang.";
+});
+
 window.addEventListener("message", async (event) => {
   if (event.source !== window.opener) return;
   if (!event.data || event.data.type !== "SEHATI_SCAN_LAGI") return;
