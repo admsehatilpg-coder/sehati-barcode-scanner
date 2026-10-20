@@ -77,7 +77,10 @@
           { type: 'SEHATI_BARCODE', barcode: String(kode) },
           '*'
         );
-        statusEl.textContent = 'Barcode terbaca dan dikirim. Menunggu konfirmasi dari nota…';
+        // Coba aktifkan kembali tab nota setelah barcode terkirim.
+        // Browser desktop biasanya mengizinkan ini; browser HP dapat membatasinya.
+        try { window.opener.focus(); } catch (_) {}
+        statusEl.textContent = 'Barcode terbaca dan dikirim. Beralih kembali ke nota…';
       } catch (e) {
         statusEl.textContent = 'Barcode terbaca: ' + kode + '. Pengiriman otomatis gagal; kembali ke nota.';
       }
