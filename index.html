@@ -80,7 +80,19 @@
         // Coba aktifkan kembali tab nota setelah barcode terkirim.
         // Browser desktop biasanya mengizinkan ini; browser HP dapat membatasinya.
         try { window.opener.focus(); } catch (_) {}
-        statusEl.textContent = 'Barcode terbaca dan dikirim. Beralih kembali ke nota…';
+        statusEl.textContent = 'Barcode terbaca dan dikirim. Menutup tab scanner agar kembali ke nota…';
+        // Scanner dibuka oleh window.open dari aplikasi nota, jadi Chrome biasanya
+        // mengizinkan tab ini menutup dirinya sendiri. Ini lebih andal di Android
+        // daripada hanya memanggil window.opener.focus().
+        setTimeout(() => {
+          try { window.close(); } catch (_) {}
+          // Jika browser tidak menutup tab otomatis, tampilkan petunjuk.
+          setTimeout(() => {
+            if (!window.closed) {
+              statusEl.textContent = 'Barcode sudah dikirim. Kembali ke tab Nota SEHATI untuk memasukkan PCS.';
+            }
+          }, 250);
+        }, 650);
       } catch (e) {
         statusEl.textContent = 'Barcode terbaca: ' + kode + '. Pengiriman otomatis gagal; kembali ke nota.';
       }
