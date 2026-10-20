@@ -48,6 +48,24 @@
     let sedangScan = false;
     let kodeTerbaca = "";
 
+    function kirimBarcodeKeNota(kode) {
+      if (!window.opener || window.opener.closed) {
+        statusEl.textContent = "Barcode terbaca: " + kode + ". Kembali ke aplikasi nota untuk melanjutkan.";
+        return;
+      }
+      try {
+        // Target pesan dibatasi ke origin tab nota yang membuka scanner.
+        const originNota = window.opener.location.origin;
+        window.opener.postMessage(
+          { type: "SEHATI_BARCODE", barcode: String(kode) },
+          originNota
+        );
+        statusEl.textContent = "Barcode terkirim ke aplikasi nota. Silakan kembali ke tab nota.";
+      } catch (e) {
+        statusEl.textContent = "Barcode terbaca: " + kode + ". Kembali ke aplikasi nota; pengiriman otomatis tidak berhasil.";
+      }
+    }
+
     const statusEl = document.getElementById("status");
     const resultEl = document.getElementById("result");
     const startBtn = document.getElementById("startBtn");
@@ -90,12 +108,7 @@
             copyBtn.hidden = false;
             statusEl.textContent = "Barcode berhasil dibaca.";
             
-if (window.opener && !window.opener.closed) {
-  window.opener.postMessage(
-    { type: 'SEHATI_BARCODE', barcode: kodeTerbaca },
-    '*'
-  );
-}
+kirimBarcodeKeNota(kodeTerbaca);
 
 
             try { await scanner.stop(); } catch (e) {}
@@ -144,12 +157,7 @@ window.addEventListener("message", async (event) => {
         copyBtn.hidden = false;
         statusEl.textContent = "Barcode berhasil dibaca.";
 
-        if (window.opener && !window.opener.closed) {
-          window.opener.postMessage(
-            { type: "SEHATI_BARCODE", barcode: kodeTerbaca },
-            "*"
-          );
-        }
+        kirimBarcodeKeNota(kodeTerbaca);
 
         try {
           await scanner.stop();
