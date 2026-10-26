@@ -73,10 +73,12 @@
       }
       try {
         // Aplikasi nota memvalidasi origin dan sumber pesan sebelum menerima barcode.
-        window.opener.postMessage(
-          { type: 'SEHATI_BARCODE', barcode: String(kode) },
-          '*'
-        );
+        const pesanBarcode = { type: 'SEHATI_BARCODE', barcode: String(kode) };
+        window.opener.postMessage(pesanBarcode, '*');
+        // Kirim ulang sekali untuk membantu WebView Android yang kadang terlambat menerima pesan.
+        setTimeout(() => {
+          try { if (window.opener && !window.opener.closed) window.opener.postMessage(pesanBarcode, '*'); } catch (_) {}
+        }, 180);
         // Coba aktifkan kembali tab nota setelah barcode terkirim.
         // Browser desktop biasanya mengizinkan ini; browser HP dapat membatasinya.
         try { window.opener.focus(); } catch (_) {}
